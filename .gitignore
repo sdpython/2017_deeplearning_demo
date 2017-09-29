@@ -1,0 +1,5 @@
+autoencoders/101_ObjectCategories/*
+autoencoders/map_file_101_ObjectCategories.txt
+autoencoders/output_path/*
+*.pyc
+
