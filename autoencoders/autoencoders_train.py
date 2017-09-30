@@ -7,11 +7,13 @@ import sys
 import os
 import cntk as C
 from cntk import load_model
-
 from cntk_image_reader import create_map_file, create_reader
+from cntk import user_function
+
+from autoencoders_train_pink import PinkActivation
 
 
-def create_model(num_channels, image_width, image_height, layer, rconv, rpool):
+def create_model(num_channels, image_width, image_height, layer, rconv, rpool, pink, beta):
     """
     Create a model.
     
@@ -19,6 +21,8 @@ def create_model(num_channels, image_width, image_height, layer, rconv, rpool):
     @param      image_width     image width
     @param      image_height    image height
     @param      layer			number of groups of hidden layers (1 or 2)
+    @param      pink            use the pink activation
+    @param      beta            beta parameter for the image gradient
     @return                     (input_var, output_var), model, (losses,)
     """
     input_dim = image_height * image_width * num_channels
@@ -31,12 +35,18 @@ def create_model(num_channels, image_width, image_height, layer, rconv, rpool):
     cMap    = num_channels
     pool_size = (rpool, rpool)
     pad = True
-
+    
+    img_name = os.path.join(os.path.dirname(__file__), "data", "pink_elephant.jpg")
+    
     # Define the auto encoder model
     if layer == 2:
         conv1   = C.layers.Convolution2D  (conv_size, num_filters=cMap, pad=pad, activation=C.ops.relu)(scaled_input)
         pool1   = C.layers.MaxPooling   (pool_size, pool_size, name="ae_node")(conv1)
-        unpool1 = C.layers.MaxUnpooling (pool_size, pool_size)(pool1, conv1)
+        if pink:
+            lay = user_function(PinkActivation(pool1, img_name, num_channels, width, height, beta))
+        else:
+            lay == pool1
+        unpool1 = C.layers.MaxUnpooling (pool_size, pool_size)(lay, conv1)
         deconv1       = C.layers.ConvolutionTranspose2D(conv_size, num_filters=num_channels, pad=pad, bias=False, 
                                         init=C.glorot_uniform(0.001), name="output_node_int")(unpool1)
         z = C.layers.ConvolutionTranspose2D(conv_size, num_filters=num_channels, pad=pad, bias=False, 
@@ -44,16 +54,28 @@ def create_model(num_channels, image_width, image_height, layer, rconv, rpool):
     elif layer == 0.5:
         conv1   = C.layers.Convolution2D (conv_size, num_filters=num_channels, pad=pad, 
                                                                         activation=C.ops.relu, name="ae_node")(scaled_input)
-        z       = C.layers.ConvolutionTranspose2D(conv_size, num_filters=num_channels, pad=pad, bias=False, 
-                                        init=C.glorot_uniform(0.001), name="output_node")(conv1)        
+        if pink:
+            lay = user_function(PinkActivation(conv1, img_name, num_channels, width, height, beta))
+        else:
+            lay == conv1
+        z = C.layers.ConvolutionTranspose2D(conv_size, num_filters=num_channels, pad=pad, bias=False, 
+                                        init=C.glorot_uniform(0.001), name="output_node")(lay)        
     elif layer == 0.25:
         conv1   = C.layers.Convolution2D (conv_size, num_filters=num_channels, pad=pad, 
                                                                         activation=C.ops.relu, name="ae_node")(scaled_input)
-        z       = conv1
+        if pink:
+            lay = user_function(PinkActivation(conv1, img_name, num_channels, width, height, beta))
+        else:
+            lay == conv1
+        z       = lay
     elif layer == 1:
         conv1   = C.layers.Convolution2D  (conv_size, num_filters=cMap, pad=pad, activation=C.ops.relu)(scaled_input)
         pool1   = C.layers.MaxPooling   (pool_size, pool_size, name="ae_node")(conv1)
-        unpool1 = C.layers.MaxUnpooling (pool_size, pool_size)(pool1, conv1)
+        if pink:
+            lay = user_function(PinkActivation(pool1, img_name, num_channels, width, height, beta))
+        else:
+            lay == pool1
+        unpool1 = C.layers.MaxUnpooling (pool_size, pool_size)(lay, conv1)
         z       = C.layers.ConvolutionTranspose2D(conv_size, num_filters=num_channels, pad=pad, bias=False, 
                                         init=C.glorot_uniform(0.001), name="output_node")(unpool1)        
     else:
@@ -135,6 +157,7 @@ if __name__=='__main__':
     this = os.path.abspath(os.path.dirname(__file__))
     folder = os.path.join(this, "101_ObjectCategories")
     channels = 3
+    pink = True
     for layer, width, height, poolconv in [
                     (0.5, 64, 64, 3), 
                     (0.5, 64, 64, 5), 
@@ -148,8 +171,9 @@ if __name__=='__main__':
                     (2, 100, 80, 3), 
                     (0.25, 64, 64, 5), 
                     ]:
-        inout, model, losses = create_model(channels, width, height, layer, poolconv, poolconv)
-        suffix = "h{}_{}x{}_{}".format(layer, width, height, poolconv)
+        inout, model, losses = create_model(channels, width, height, layer, 
+                                            poolconv, poolconv, pink=pink, beta=0.0001)
+        suffix = "h{}_{}x{}_{}{}".format(layer, width, height, poolconv, "_pink" if pink else "")
         print("------------------------------------------")
         print("suffix={0}".format(suffix))
         print("------------------------------------------")

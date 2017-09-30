@@ -24,10 +24,16 @@ Scripts as baselines:
 
 * `07_Deconvolution_PY.py <https://github.com/Microsoft/CNTK/blob/master/Examples/Image/GettingStarted/07_Deconvolution_PY.py>`_
 * `07_Deconvolution_Visualizer.py <https://github.com/Microsoft/CNTK/blob/master/Examples/Image/GettingStarted/07_Deconvolution_Visualizer.py>`_
+* `Basic Autoencoder for Dimensionality Reduction <https://github.com/Microsoft/CNTK/blob/master/Tutorials/CNTK_105_Basic_Autoencoder_for_Dimensionality_Reduction.ipynb>`_
+* `Artistic Style Transfer <https://github.com/Microsoft/CNTK/blob/master/Tutorials/CNTK_205_Artistic_Style_Transfer.ipynb>`_
 
 Model descriptions:
 
 * `Image Auto Encoder using deconvolution and unpooling <https://docs.microsoft.com/en-us/cognitive-toolkit/image-auto-encoder-using-deconvolution-and-unpooling>`_
+
+Custom functions in CNTK:
+
+* `Using user functions for debugging <https://cntk.ai/pythondocs/extend.html#using-user-functions-for-debugging>`_
   
 The pink elephant:
 
