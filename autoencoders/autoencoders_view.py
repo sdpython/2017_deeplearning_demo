@@ -12,48 +12,60 @@ from cntk.ops import combine
 from PIL import Image
 
 
-def save_as_png(val_array, img_file_name, channels, width, height):
-    if channels == 1:
-        img_array = val_array.reshape((channels, width, height))
-        img_array = np.clip(img_array, 0, img_array.max())
-        img_array *= 255.0 / img_array.max()
-        img_array = np.rint(img_array).astype('uint8')
-
+def save_as_png(output_path, i, *arrays):
+    file_names = []
+    for sub, val_array in enumerate(arrays):
+        if len(val_array.shape) != 3:
+            raise ValueError("Shape dimension should be 3 not '{0}'".format(val_array.shape))
+        img_file_name = os.path.join(output_path, "img_{0}_l{1}.png".format(i, sub))
+        file_names.append(img_file_name)
         try:
             os.remove(img_file_name)
         except OSError:
             pass
 
-        im = Image.fromarray(img_array)
-        im.save(img_file_name)
-    else:
-        val_array = val_array.ravel()[: width * height]
-        img_array = val_array.reshape((width, height))
-        img_array = np.clip(img_array, 0, img_array.max())
-        img_array *= 255.0 / img_array.max()
-        img_array = np.rint(img_array).astype('uint8')
+        height,width = val_array.shape[1:]
+        
+        if val_array.shape[0] == 1:
+            img_array = val_array * 255.0 / val_array.max()
+            img_array = np.rint(img_array).astype('uint8')
 
-        try:
-            os.remove(img_file_name)
-        except OSError:
-            pass
-
-        im = Image.fromarray(img_array)
-        im.save(img_file_name)
+            im = Image.fromarray(img_array)
+            im.save(img_file_name)
+        else:
+            channels = val_array.shape[0]
+            rgbArray = np.zeros((height,width, channels), 'uint8')
+            maxi = val_array.max()
+            for ic in range(channels):
+                rgbArray[:,:, ic] = val_array[2-ic,:,:] * 255.0 / maxi
+            img = Image.fromarray(rgbArray)
+            img.save(img_file_name)
+            
+            maxi = [val_array[2-ic,:,:].max() for ic in  range(channels)]
+            if min(maxi) < max(maxi) / 3:
+                print(maxi)
+                for ic in range(channels):
+                    rgbArray[:,:, ic] = val_array[2-ic,:,:] * 255.0 / maxi[ic]
+                img = Image.fromarray(rgbArray)
+                img_file_name = os.path.join(output_path, "img_{0}_l{1}_eq.png".format(i, sub))            
+                img.save(img_file_name)
+                file_names.append(img_file_name)
+                
+            
+    return file_names
         
     
 
-def generate_visualization(map_file, model_file, output_path, channels, width, height):
-    num_objects_to_eval = 5
-
+def generate_visualization(map_file, model_file, output_path, 
+                                            channels, width, height, suffix,
+                                            num_objects_to_eval=25, skip=0):
     model_file_name = model_file
     encoder_output_file_name = "encoder_output_PY.txt"
     decoder_output_file_name = "decoder_output_PY.txt"
-    enc_node_name = "pooling_node"
+    enc_node_name = "ae_node"
     input_node_name = "input_node"
     output_node_name = "output_node"
-
-
+    
     minibatch_source = create_reader(map_file, channels=channels, width=width, 
                                  height=height, randomize=False)
     
@@ -66,37 +78,49 @@ def generate_visualization(map_file, model_file, output_path, channels, width, h
          
     if not os.path.exists(output_path):
         os.mkdir(output_path)
+        
+    df = pandas.read_csv(map_file, sep="\t", header=None)
+    df.columns = [["image", "label"]]
+                
+    # open HTML file
+    report = "report_{0}.html".format(suffix)
+    f = open(report, "w")
+    f.write("<html><body><h1>{0}</h1>\n".format(suffix))
 
     # evaluate model save output
     features_si = minibatch_source['features']
-    with open(os.path.join(output_path, decoder_output_file_name), 'wb') as decoder_text_file:
-        with open(os.path.join(output_path, encoder_output_file_name), 'wb') as encoder_text_file:
-            for i in range(0, num_objects_to_eval):
-                mb = minibatch_source.next_minibatch(1)
-                raw_dict = output_nodes.eval(mb[features_si])
-                output_dict = {}
-                for key in raw_dict.keys(): 
-                    output_dict[key.name] = raw_dict[key]
+    for i in range(0, num_objects_to_eval + skip):
+        mb = minibatch_source.next_minibatch(1)
+        if i < skip:
+            continue
+        f.write("<hr><h2>Image {0}</h2>\n".format(i))
+        raw_dict = output_nodes.eval(mb[features_si])
+        output_dict = {}
+        for key in raw_dict.keys(): 
+            output_dict[key.name] = raw_dict[key]
 
-                encoder_input = output_dict[input_node_name]
-                encoder_output = output_dict[enc_node_name]
-                decoder_output = output_dict[output_node_name]
-                in_values = (encoder_input[0][0].flatten())[np.newaxis]
-                enc_values = (encoder_output[0][0].flatten())[np.newaxis]
-                out_values = (decoder_output[0][0].flatten())[np.newaxis]
+        encoder_input = output_dict[input_node_name]
+        encoder_output = output_dict[enc_node_name]
+        decoder_output = output_dict[output_node_name]
+        
+        in_values = encoder_input[0]
+        enc_values = encoder_output[0]
+        out_values = decoder_output[0]
 
-                # write results as text and png
-                np.savetxt(decoder_text_file, out_values, fmt="%.6f")
-                np.savetxt(encoder_text_file, enc_values, fmt="%.6f")
-                save_as_png(in_values,  os.path.join(output_path, "imageAutoEncoder_%s__input.png" % i), channels, width, height)
-                save_as_png(out_values, os.path.join(output_path, "imageAutoEncoder_%s_output.png" % i), channels, width, height)
+        # write results as text and png
+        files = save_as_png(output_path, i, in_values, enc_values, out_values)
+        orig = df.loc[i, "image"]
+        orig = os.path.relpath(orig, os.path.abspath(os.path.dirname(__file__)))
+        print(orig)
+        if not os.path.exists(orig):
+            raise FileNotFoundError(orig)
+        f.write('<img src="{0}" />\n'.format(orig))
+        for name in files:
+            f.write('<img src="{0}" />\n'.format(name))
 
-                # visualizing the encoding is only possible and meaningful with a single conv filter
-                enc_dim = 7
-                if(enc_values.size == enc_dim*enc_dim):
-                    save_as_png(enc_values, os.path.join(output_path, "imageAutoEncoder_%s_encoding.png" % i), dim=enc_dim)
-
+    f.close()
     print("Done. Wrote output to %s" % output_path)
+    return report
 
     
 if __name__=='__main__':
@@ -105,6 +129,11 @@ if __name__=='__main__':
     
     # visualization
     map_file = os.path.join("map_file_101_ObjectCategories.txt")
-    model_file = os.path.join("101_ObjectCategories", "07_Deconvolution_PY_29.model")
     output_path = "output_path"
-    generate_visualization(map_file, model_file, output_path, 3, 500, 400)
+    channels = 3
+    #suffix = "h0.5_192x192_3"
+    suffix = "h0.25_64x64_5"
+    model_file = os.path.join(suffix, "ae_9.model")
+    width, height = [int(_) for _ in suffix.split("_")[1].split("x")]    
+    generate_visualization(map_file, model_file, output_path, channels, width, height, 
+                                     suffix, skip=200)

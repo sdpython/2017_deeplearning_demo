@@ -19,7 +19,9 @@ def enumerate_map_file(folder, extension, class_mapping=None, include_unknown=Fa
     @return                 enumerate label, image, num_label
     """
     memo = {}
-    for name in explore_folder_iterfile(folder, pattern=".*[.]" + extension):
+    for name in explore_folder_iterfile(folder, pattern=".*[.]" + extension + "$"):
+        if not name.endswith(extension):
+            continue
         path, image = os.path.split(name)
         p, label = os.path.split(path)
         if class_mapping is None:
