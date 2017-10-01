@@ -1,19 +1,19 @@
-autoencoders/101_ObjectCategories/*
-autoencoders/map_file_101_ObjectCategories.txt
-autoencoders/output_path/*
-autoencoders/h*
-autoencoders/report*
-autoencoders/my*
-autoencoders/models/*
+code/autoencoders/101_ObjectCategories/*
+code/autoencoders/map_file_101_ObjectCategories.txt
+code/autoencoders/output_path/*
+code/autoencoders/h*
+code/autoencoders/report*
+code/autoencoders/my*
+code/autoencoders/models/*
 *.sln
 *.pyproj
 *.suo
 *.pyc
-autoencoders/autoencoders.7z
-autoencoders/autoencoders_train - Copy.py
-autoencoders/results.txt
-autoencoder_artstyle/.ipynb_checkpoints/*
-autoencoders2/101_ObjectCategories/*
+code/autoencoders/autoencoders.7z
+code/autoencoders/autoencoders_train - Copy.py
+code/autoencoders/results.txt
+code/autoencoder_artstyle/.ipynb_checkpoints/*
+code/autoencoders2/101_ObjectCategories/*
 *.gz
 *.bin
-autoencoder_artstyle/output*.*
+code/autoencoder_artstyle/output*.*
