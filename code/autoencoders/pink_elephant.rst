@@ -1,4 +1,3 @@
-"""
 The Pink Elephant Interpretation
 ================================
 
@@ -42,5 +41,3 @@ The pink elephant:
 Links:
 
 * `Apprentissage sans labels <http://www.xavierdupre.fr/app/ensae_teaching_cs/helpsphinx3/specials/nolabel.html>`_
-"""
-
