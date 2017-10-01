@@ -46,17 +46,157 @@
 </section>
 
 <section>
-<section class="first">
-<h2>Trois concepts en algorithmie</h2>
-<ul class="first last simple">
-<li>la séquence</li>
-<li>le test</li>
-<li>la boucle</li>
+<h2>Réseaux de neurones</h2>
+<ul>
+<li>à la mode dans les années 1990</li>
+<li>boîte noire</li>
+</ul>
+<img src="_images/rn_gradient.png" />
+</section>
+
+<section>
+<h2>Compliqué à apprendre</h2>
+<ul>
+<li>Peu résistants aux entrées homogènes</li>
+<li>1 couche, 2 couches., 3 couches ?</li>
+<li>Impossible à interpréter</li>
+<li>Converge lentement ou diverge rapidement</li>
 </ul>
 </section>
 
-
+<section>
+<h2>Mille Feuilles : meilleur apprentissage</h2>
+<ul>
+<li>Couche de convolution</li>
+<li>Beaucoup de coefficients, seulement quelques uns de libres</li>
+<li>Une couche fait peu de choses, beaucoup de couches font...</li>
+<li>Peuvent être apprises séparément</li>
+</ul>
+<img src="_images/mnist.png" />
 </section>
+
+<section>
+<h2>Design haut level</h2>
+<ul>
+<li><a href="https://www.cntk.ai/pythondocs/layerref.html#convolution">Convolution</a></li>
+<li><a href="https://www.cntk.ai/pythondocs/layerref.html#maxpooling-averagepooling">Pooling</a></li>
+<li><a href="https://www.cntk.ai/pythondocs/layerref.html#dense">Dense</a></li>
+<li><a href="https://www.cntk.ai/pythondocs/layerref.html#dropout">DropOut</a></li>
+</ul>
+</section>
+
+<section>
+<h2>A chaque problème son modèle</h2>
+<p>
+<ul>
+<li>Presque la même topologie</li>
+<li>Mêmes algorithmes</li>
+<li>Images différentes</li>
+</ul>
+</p>
+<img src="_images/problems.png" />
+</section>
+
+<section>
+<h2>Des compétitions et des modèles plus performants</h2>
+<ul>
+<li><a href="http://www.image-net.org/">ImageNet</a></li>
+<li><a href="https://en.wikipedia.org/wiki/AlexNet">AlexNet</a>, 
+       <a href="https://en.wikipedia.org/wiki/ResNet">ResNet</a>, 
+       <a href="http://www.robots.ox.ac.uk/~vgg/research/very_deep/">VGG</a></li>
+</ul>
+<img src="_images/alexnet.png" />
+</section>
+
+<section>
+<h2>Featurization - Transfer Learning</h2>
+<ul>
+<li>Modèle appris sur des millions d'images</li>
+<li>Couches intermédiaire meilleures features que l'image brute dans d'autres problèmes</li>
+</ul>
+<img src="_images/alexnet_break.png" />
+</section>
+
+
+<section>
+<h2>Une fonction d'erreur adéquate</h2>
+<ul>
+<li><a href="https://arxiv.org/pdf/1603.09446.pdf"></a>Object Skeleton Extraction in Natural Images by Fusing Scale-associated Deep
+Side Outputs
+</li>
+</ul>
+<img src="_images/skeleton.png" />
+</section>
+
+
+<section>
+<h2>Interprétation</h2>
+<ul>
+<li>Couche à petit pas</li>
+<li>Interprétation imprévisible bien que presque sensée</li>
+</ul>
+<img src="_images/deep_dreams.png" />
+</section>
+
+<section>
+<h2>Le gradient pour contrôler</h2>
+<p>
+<ul>
+<li>Une fonction d'erreur spécifique au problème</li>
+<li><a href="https://github.com/sdpython/2017_deeplearning_demo/blob/master/code/autoencoder_artstyle/CNTK_205_Artistic_Style_Transfer.ipynb">CNTK 205: Artistic Style Transfer</a></li>
+</ul>
+</p>
+<img src="_images/artme.png" />
+</section>
+
+
+
+<section>
+<h2>Traduire ce qu'on attend en gradient</h2>
+<p>
+<ul>
+<li>Forcer l'interprétation</li>
+<li><a href="https://blog.paperspace.com/adversarial-autoencoders-with-pytorch/">Adversarial Autoencoders</a></li>
+</ul>
+</p>
+<img src="_images/aae_001.png" width="600" />
+</section>
+
+<section>
+<h2>Utiliser les observations passées</h2>
+<p>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Recurrent_neural_network">RNN</a>, 
+       <a href="http://colah.github.io/posts/2015-08-Understanding-LSTMs/">LSTM</a></li>
+</ul>
+</p>
+<img src="_images/lstm.png" width="600" />
+</section>
+
+<section>
+<h2>Utiliser la réaction qui suit la prédiction</h2>
+<p>
+<ul>
+<li><a href="https://www.microsoft.com/en-us/research/group/reinforcement-learning-group/">Deep Reinforcement Learning</a></li>
+<li><a href="https://github.com/Microsoft/malmo">malmo</a></li>
+</ul>
+</p>
+<img src="_images/malmo.png" width="600" />
+</section>
+
+<section>
+<h2>Aujourd'hui</h2>
+<img src="_images/0GIEkFelizCz1ovZQ.jpg" />
+</section>
+
+<section>
+<h2>Pas pour tout de suite</h2>
+<img src="_images/HAL-9000-1-660x565.jpg" />
+</section>
+
+
+
+
 </div>
 
 
