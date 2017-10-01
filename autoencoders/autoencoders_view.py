@@ -10,6 +10,7 @@ from cntk import load_model
 from cntk_image_reader import create_reader
 from cntk.ops import combine
 from PIL import Image
+from autoencoders_train_pink import PinkActivation
 
 
 def save_as_png(output_path, i, *arrays):
@@ -18,7 +19,7 @@ def save_as_png(output_path, i, *arrays):
         if len(val_array.shape) != 3:
             raise ValueError("Shape dimension should be 3 not '{0}'".format(val_array.shape))
         img_file_name = os.path.join(output_path, "img_{0}_l{1}.png".format(i, sub))
-        file_names.append(img_file_name)
+        file_names.append((img_file_name, sub))
         try:
             os.remove(img_file_name)
         except OSError:
@@ -49,8 +50,7 @@ def save_as_png(output_path, i, *arrays):
                 img = Image.fromarray(rgbArray)
                 img_file_name = os.path.join(output_path, "img_{0}_l{1}_eq.png".format(i, sub))            
                 img.save(img_file_name)
-                file_names.append(img_file_name)
-                
+                file_names.append((img_file_name, "{0}r".format(sub)))
             
     return file_names
         
@@ -58,7 +58,8 @@ def save_as_png(output_path, i, *arrays):
 
 def generate_visualization(map_file, model_file, output_path, 
                                             channels, width, height, suffix,
-                                            num_objects_to_eval=25, skip=0):
+                                            num_objects_to_eval=5, skip=0,
+                                            save=None):
     model_file_name = model_file
     encoder_output_file_name = "encoder_output_PY.txt"
     decoder_output_file_name = "decoder_output_PY.txt"
@@ -83,9 +84,8 @@ def generate_visualization(map_file, model_file, output_path,
     df.columns = [["image", "label"]]
                 
     # open HTML file
-    report = "report_{0}.html".format(suffix)
-    f = open(report, "w")
-    f.write("<html><body><h1>{0}</h1>\n".format(suffix))
+    if save is not None:
+        save.write("<h1>{0}</h1>\n".format(suffix))
 
     # evaluate model save output
     features_si = minibatch_source['features']
@@ -115,12 +115,10 @@ def generate_visualization(map_file, model_file, output_path,
         if not os.path.exists(orig):
             raise FileNotFoundError(orig)
         f.write('<img src="{0}" />\n'.format(orig))
-        for name in files:
-            f.write('<img src="{0}" />\n'.format(name))
+        for name, legend in files:
+            f.write('{1}<img src="{0}" alt="{1}"/>\n'.format(name, legend))
 
-    f.close()
     print("Done. Wrote output to %s" % output_path)
-    return report
 
     
 if __name__=='__main__':
@@ -131,9 +129,13 @@ if __name__=='__main__':
     map_file = os.path.join("map_file_101_ObjectCategories.txt")
     output_path = "output_path"
     channels = 3
-    #suffix = "h0.5_192x192_3"
-    suffix = "h0.25_64x64_5"
-    model_file = os.path.join(suffix, "ae_9.model")
-    width, height = [int(_) for _ in suffix.split("_")[1].split("x")]    
-    generate_visualization(map_file, model_file, output_path, channels, width, height, 
-                                     suffix, skip=200)
+    suffixes = [_ for _ in os.listdir("models") if "x" in _ and ".25" not in _]
+    with open("report.html", "w") as f:
+        f.write("<html><body>\n")
+        for suffix in suffixes:
+            print("------------", suffix)
+            model_file = os.path.join("models", suffix, "ae_99.model")
+            width, height = [int(_) for _ in suffix.split("_")[1].split("x")]    
+            generate_visualization(map_file, model_file, output_path, channels, width, height, 
+                                             suffix, skip=220, save=f)
+        f.write("</body></html>\n")

@@ -4,9 +4,16 @@ autoencoders/output_path/*
 autoencoders/h*
 autoencoders/report*
 autoencoders/my*
+autoencoders/models/*
 *.sln
 *.pyproj
 *.suo
 *.pyc
-
-
+autoencoders/autoencoders.7z
+autoencoders/autoencoders_train - Copy.py
+autoencoders/results.txt
+autoencoder_artstyle/.ipynb_checkpoints/*
+autoencoders2/101_ObjectCategories/*
+*.gz
+*.bin
+autoencoder_artstyle/output*.*

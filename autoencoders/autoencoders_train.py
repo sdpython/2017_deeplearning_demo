@@ -7,6 +7,7 @@ import sys
 import os
 import cntk as C
 from cntk import load_model
+
 from cntk_image_reader import create_map_file, create_reader
 from cntk import user_function
 
@@ -43,7 +44,7 @@ def create_model(num_channels, image_width, image_height, layer, rconv, rpool, p
         conv1   = C.layers.Convolution2D  (conv_size, num_filters=cMap, pad=pad, activation=C.ops.relu)(scaled_input)
         pool1   = C.layers.MaxPooling   (pool_size, pool_size, name="ae_node")(conv1)
         if pink:
-            lay = user_function(PinkActivation(pool1, img_name, num_channels, width, height, beta))
+            lay = user_function(PinkActivation(pool1, img_name, beta))
         else:
             lay == pool1
         unpool1 = C.layers.MaxUnpooling (pool_size, pool_size)(lay, conv1)
@@ -55,31 +56,53 @@ def create_model(num_channels, image_width, image_height, layer, rconv, rpool, p
         conv1   = C.layers.Convolution2D (conv_size, num_filters=num_channels, pad=pad, 
                                                                         activation=C.ops.relu, name="ae_node")(scaled_input)
         if pink:
-            lay = user_function(PinkActivation(conv1, img_name, num_channels, width, height, beta))
+            lay = user_function(PinkActivation(conv1, img_name, beta))
         else:
-            lay == conv1
+            lay = conv1
         z = C.layers.ConvolutionTranspose2D(conv_size, num_filters=num_channels, pad=pad, bias=False, 
                                         init=C.glorot_uniform(0.001), name="output_node")(lay)        
     elif layer == 0.25:
         conv1   = C.layers.Convolution2D (conv_size, num_filters=num_channels, pad=pad, 
                                                                         activation=C.ops.relu, name="ae_node")(scaled_input)
         if pink:
-            lay = user_function(PinkActivation(conv1, img_name, num_channels, width, height, beta))
+            lay = user_function(PinkActivation(conv1, img_name, beta))
         else:
-            lay == conv1
+            lay = conv1
         z       = lay
     elif layer == 1:
         conv1   = C.layers.Convolution2D  (conv_size, num_filters=cMap, pad=pad, activation=C.ops.relu)(scaled_input)
         pool1   = C.layers.MaxPooling   (pool_size, pool_size, name="ae_node")(conv1)
         if pink:
-            lay = user_function(PinkActivation(pool1, img_name, num_channels, width, height, beta))
+            lay = user_function(PinkActivation(pool1, img_name, beta))
         else:
-            lay == pool1
+            lay = pool1
         unpool1 = C.layers.MaxUnpooling (pool_size, pool_size)(lay, conv1)
         z       = C.layers.ConvolutionTranspose2D(conv_size, num_filters=num_channels, pad=pad, bias=False, 
                                         init=C.glorot_uniform(0.001), name="output_node")(unpool1)        
+    elif layer == "1d":
+        conv1   = C.layers.Convolution2D  (conv_size, num_filters=cMap, pad=pad, activation=C.ops.relu)(scaled_input)
+        pool1   = C.layers.MaxPooling   (pool_size, pool_size, name="ae_node")(conv1)
+        if pink:
+            lay = user_function(PinkActivation(pool1, img_name, beta))
+        else:
+            lay = pool1
+        unpool1 = C.layers.MaxUnpooling (pool_size, pool_size)(lay, conv1)
+        dense = C.layers.Dense((unpool1.shape), activation=C.relu,
+                                            input_rank=None, name="dense")(unpool1)
+        z = C.layers.ConvolutionTranspose2D(conv_size, num_filters=num_channels, pad=pad, bias=False, 
+                                        init=C.glorot_uniform(0.001), name="output_node")(dense)
+    elif layer == "0.5d":
+        conv1   = C.layers.Convolution2D (conv_size, num_filters=num_channels, pad=pad, 
+                                                                        activation=C.ops.relu, name="ae_node")(scaled_input)
+        if pink:
+            lay = user_function(PinkActivation(conv1, img_name, beta))
+        else:
+            lay = conv1
+        dense = C.layers.Dense(lay.shape, activation=C.relu, name="dense")(lay)
+        z = C.layers.ConvolutionTranspose2D(conv_size, num_filters=num_channels, pad=pad, bias=False, 
+                                        init=C.glorot_uniform(0.001), name="output_node")(dense)        
     else:
-        raise ValueError("Not implemented")
+        raise ValueError("Not implemented '{0}'".format(layer))
 
     # define rmse loss function (should be 'err = C.ops.minus(deconv1, scaled_input)')
     # input_dim = (image_height+4) * (image_width+4) * num_channels
@@ -96,7 +119,7 @@ def create_model(num_channels, image_width, image_height, layer, rconv, rpool, p
 def train_model(folder, inout, model, losses, 
                 channels, width, height, 
                 epoch_size=2000, minibatch_size=512, max_epochs=100,
-                suffix=""):
+                suffix="", lr=0.00015, deflearner="sgd"):
     """
     Train a model.
     
@@ -116,12 +139,15 @@ def train_model(folder, inout, model, losses,
     reader_train = create_reader(map_file, channels=channels, width=width, height=height)
 
     # Set learning parameters
-    lr_schedule = C.learning_rate_schedule([0.00015], C.learners.UnitType.sample, epoch_size)
+    lr_schedule = C.learning_rate_schedule([lr], C.learners.UnitType.sample, epoch_size)
     mm_schedule = C.learners.momentum_as_time_constant_schedule([600], epoch_size)
 
     # Instantiate the trainer object to drive the model training
-    learner = C.learners.momentum_sgd(model.parameters, lr_schedule, 
-                                      mm_schedule, unit_gain=True)
+    if deflearner == "sgd":
+        clearn =C.learners.momentum_sgd
+    else:
+        clearn = C.learners.adam
+    learner = clearn(model.parameters, lr_schedule, mm_schedule, unit_gain=True)
     progress_printer = C.logging.ProgressPrinter(tag='Training')
     trainer = C.Trainer(model, losses, learner, progress_printer) 
     
@@ -150,32 +176,49 @@ def train_model(folder, inout, model, losses,
             sample_count += data[input_var].num_samples                     
 
         trainer.summarize_training_progress()
-        model.save(os.path.join(suffix, "ae_{}.model".format(epoch)))
+        model.save(os.path.join("models", suffix, "ae_{}.model".format(epoch)))
 
 
 if __name__=='__main__':
     this = os.path.abspath(os.path.dirname(__file__))
     folder = os.path.join(this, "101_ObjectCategories")
     channels = 3
-    pink = True
     for layer, width, height, poolconv in [
+                    #("1d", 50, 40, 3), 
+                    #("1d", 64, 64, 3), 
+                    #("0.5d", 64, 64, 3), 
                     (0.5, 64, 64, 3), 
                     (0.5, 64, 64, 5), 
                     (0.5, 192, 192, 5), 
                     (0.5, 192, 192, 3), 
-                    (1, 192, 192, 5), 
-                    (1, 192, 192, 3), 
+                    (1, 100, 80, 5), 
+                    (1, 100, 80, 3), 
+                    (1, 64, 64, 3), 
                     (1, 200, 160, 5), 
                     (1, 200, 160, 3), 
+                    (1, 192, 192, 5), 
+                    (1, 192, 192, 3), 
                     (2, 100, 80, 5), 
                     (2, 100, 80, 3), 
                     (0.25, 64, 64, 5), 
                     ]:
-        inout, model, losses = create_model(channels, width, height, layer, 
-                                            poolconv, poolconv, pink=pink, beta=0.0001)
-        suffix = "h{}_{}x{}_{}{}".format(layer, width, height, poolconv, "_pink" if pink else "")
-        print("------------------------------------------")
-        print("suffix={0}".format(suffix))
-        print("------------------------------------------")
-        train_model(folder, inout, model, losses, channels, width, height,
-                          suffix=suffix, max_epochs=100)
+        for pink in [True, False]:
+            if pink:
+                betas = [0.00001, 0.000001]
+                lrs = [0.00002, 0.00001]
+            else:
+                betas = [0.00001]
+                lr = [0.00002, 0.00001, 0.0001]
+            for beta in betas:
+                for lr in lrs:
+                    for defle in ['adam', 'sgd']:
+                        inout, model, losses = create_model(channels, width, height, layer, 
+                                                            poolconv, poolconv, pink=pink, beta=beta)
+                        suffix = "h{}_{}x{}_{}{}_lr{}_b{}_def{}".format(layer, width, height, poolconv, 
+                                                                                     "_pink" if pink else "",
+                                                                                     lr, beta, defle)
+                        print("------------------------------------------")
+                        print("suffix={0}".format(suffix))
+                        print("------------------------------------------")
+                        train_model(folder, inout, model, losses, channels, width, height,
+                                          suffix=suffix, max_epochs=100, lr=0.0001, deflearner=defle)
