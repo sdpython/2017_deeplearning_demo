@@ -37,6 +37,7 @@ Custom functions in CNTK:
 The pink elephant:
 
 .. image:: data/pink_elephant.jpg
+    :width: 400
 
 Links:
 
