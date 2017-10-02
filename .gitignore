@@ -17,3 +17,6 @@ code/autoencoders2/101_ObjectCategories/*
 *.gz
 *.bin
 code/autoencoder_artstyle/output*.*
+code/cntk_finance/.ipynb_checkpoints/CNTK_104_Finance_Timeseries_Basic_with_Pandas_Numpy-checkpoint.ipynb
+code/cntk_finance/data/Stock/stock_SPY.pkl
+code/cntk_finance/cache/NASDAQ_MSFT.2000-01-03.2017-10-01.txt
