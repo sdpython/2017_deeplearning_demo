@@ -133,6 +133,8 @@ if __name__=='__main__':
     with open("report.html", "w") as f:
         f.write("<html><body>\n")
         for suffix in suffixes:
+            if "pink" in suffix:
+                continue
             print("------------", suffix)
             model_file = os.path.join("models", suffix, "ae_99.model")
             width, height = [int(_) for _ in suffix.split("_")[1].split("x")]    

@@ -30,7 +30,7 @@ def create_model(num_channels, image_width, image_height, layer, rconv, rpool, p
 
     # Input variable and normalization
     input_var = C.ops.input_variable((num_channels, image_height, image_width), np.float32)
-    scaled_input = C.ops.element_times(C.ops.constant(0.00390625), input_var, name="input_node")
+    scaled_input = C.ops.element_times(C.ops.constant(0.0020625), input_var, name="input_node")
     
     conv_size = (rconv, rconv)
     cMap    = num_channels
@@ -46,7 +46,7 @@ def create_model(num_channels, image_width, image_height, layer, rconv, rpool, p
         if pink:
             lay = user_function(PinkActivation(pool1, img_name, beta))
         else:
-            lay == pool1
+            lay = pool1
         unpool1 = C.layers.MaxUnpooling (pool_size, pool_size)(lay, conv1)
         deconv1       = C.layers.ConvolutionTranspose2D(conv_size, num_filters=num_channels, pad=pad, bias=False, 
                                         init=C.glorot_uniform(0.001), name="output_node_int")(unpool1)
@@ -106,7 +106,7 @@ def create_model(num_channels, image_width, image_height, layer, rconv, rpool, p
 
     # define rmse loss function (should be 'err = C.ops.minus(deconv1, scaled_input)')
     # input_dim = (image_height+4) * (image_width+4) * num_channels
-    f2        = C.ops.element_times(C.ops.constant(0.0090625), input_var)
+    f2        = C.ops.element_times(C.ops.constant(0.0020625), input_var)
     minf   = C.ops.minus(z, f2)
     err       = C.ops.reshape(minf, (input_dim))
     sq_err    = C.ops.element_times(err, err)
@@ -161,8 +161,9 @@ def train_model(folder, inout, model, losses,
     C.logging.log_number_of_parameters(model)
     print()
     
-    if not os.path.exists(suffix):
-        os.mkdir(suffix)
+    dest = os.path.join("models", suffix)
+    if not os.path.exists(dest):
+        os.makedirs(dest)
 
     # Get minibatches of images to train with and perform model training
     for epoch in range(max_epochs):       # loop over epochs
@@ -187,38 +188,40 @@ if __name__=='__main__':
                     #("1d", 50, 40, 3), 
                     #("1d", 64, 64, 3), 
                     #("0.5d", 64, 64, 3), 
-                    (0.5, 64, 64, 3), 
-                    (0.5, 64, 64, 5), 
-                    (0.5, 192, 192, 5), 
-                    (0.5, 192, 192, 3), 
-                    (1, 100, 80, 5), 
-                    (1, 100, 80, 3), 
-                    (1, 64, 64, 3), 
-                    (1, 200, 160, 5), 
-                    (1, 200, 160, 3), 
-                    (1, 192, 192, 5), 
-                    (1, 192, 192, 3), 
-                    (2, 100, 80, 5), 
-                    (2, 100, 80, 3), 
-                    (0.25, 64, 64, 5), 
+                    # (0.5, 64, 64, 3), 
+                    # (0.5, 64, 64, 5), 
+                    # (0.5, 192, 192, 5), 
+                    (0.5, 200, 140, 3), 
+                    #(0.5, 192, 192, 3), 
+                    #(1, 100, 70, 5), 
+                    #(1, 100, 70, 3), 
+                    (1, 200, 140, 3), 
+                    #(1, 64, 64, 3), 
+                    #(1, 200, 160, 5), 
+                    #(1, 200, 160, 3), 
+                    #(1, 192, 192, 5), 
+                    #(1, 192, 192, 3), 
+                    #(2, 100, 80, 5), 
+                    (2, 200, 140, 3), 
+                    #(0.25, 64, 64, 5), 
                     ]:
-        for pink in [True, False]:
+        for pink in [False, True]:
             if pink:
-                betas = [0.00001, 0.000001]
-                lrs = [0.00002, 0.00001]
+                betas = [0.0001, 0.00001, 0.000001]
+                lrs = [ ('adam', 0.0001), ('sgd', 0.00001)]
             else:
                 betas = [0.00001]
-                lr = [0.00002, 0.00001, 0.0001]
+                lrs = [('adam', 0.0001), ('sgd', 0.00001)]
             for beta in betas:
-                for lr in lrs:
-                    for defle in ['adam', 'sgd']:
-                        inout, model, losses = create_model(channels, width, height, layer, 
-                                                            poolconv, poolconv, pink=pink, beta=beta)
-                        suffix = "h{}_{}x{}_{}{}_lr{}_b{}_def{}".format(layer, width, height, poolconv, 
-                                                                                     "_pink" if pink else "",
-                                                                                     lr, beta, defle)
-                        print("------------------------------------------")
-                        print("suffix={0}".format(suffix))
-                        print("------------------------------------------")
-                        train_model(folder, inout, model, losses, channels, width, height,
-                                          suffix=suffix, max_epochs=100, lr=0.0001, deflearner=defle)
+                for defle, lr in lrs:
+                    inout, model, losses = create_model(channels, width, height, layer, 
+                                                        poolconv, poolconv, pink=pink, beta=beta)
+                    suffix = "h{}_{}x{}_{}{}_lr{}_b{}_def{}".format(layer, width, height, poolconv, 
+                                                                                 "_pink" if pink else "",
+                                                                                 lr, beta, defle)
+                    print("------------------------------------------")
+                    print("suffix={0}".format(suffix))
+                    print(folder)
+                    print("------------------------------------------")
+                    train_model(folder, inout, model, losses, channels, width, height,
+                                      suffix=suffix, max_epochs=600, lr=lr, deflearner=defle)

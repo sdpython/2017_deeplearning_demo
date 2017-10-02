@@ -20,8 +20,9 @@ class PinkActivation(UserFunction):
         self.rgbArray = numpy.zeros((channels, width, height), 'float32')
         for ic in range(channels):
             self.rgbArray[2-ic,:,:] = self.array[:,:, ic] / 255.0
-        self.rgbArray *= 0.0090625            
+        self.rgbArray *= 0.0020625            
         self.beta = beta
+        self.img_path = image
 
     def forward(self, argument, device=None, outputs_to_retain=None):
         # sigmoid_x = 1 / (1 + np.exp(-argument))
@@ -45,6 +46,16 @@ class PinkActivation(UserFunction):
         return [output_variable(self.inputs[0].shape, self.inputs[0].dtype,
             self.inputs[0].dynamic_axes)]
 
+    def serialize(self):
+        """
+        This method serializes this obects by storing into a dictionary whatever is needed to store the function.
+        """
+        return {
+            "img_path" : self.img_path,
+            "myname": self.myname, 
+            "beta": self.beta,
+        }
+
     @staticmethod
     def deserialize(inputs, name, state):
-        return PinkActivation(inputs[0], name, self.myname, self.mysize[0], self.mysize[1])
+        return PinkActivation(inputs[0], state["img_path"], state["beta"], state["myname"])
