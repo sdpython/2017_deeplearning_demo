@@ -48,18 +48,18 @@
 <section>
 <h2>Réseaux de neurones</h2>
 <ul>
-<li>à la mode dans les années 1990</li>
-<li>boîte noire</li>
+<li>À la mode des les années 1990</li>
+<li>Boîte noire</li>
 </ul>
 <img src="_images/rn_gradient.png" />
 </section>
 
 <section>
-<h2>Compliqué à apprendre</h2>
+<h2>Réputés compliqués à mettre en oeuvre</h2>
 <ul>
 <li>Peu résistants aux entrées hétérogènes</li>
 <li>1 couche, 2 couches., 3 couches ?</li>
-<li>Impossible à interpréter</li>
+<li>Compliqué à interpréter</li>
 <li>Converge lentement ou diverge rapidement</li>
 </ul>
 </section>
@@ -76,22 +76,26 @@
 </section>
 
 <section>
-<h2>Design haut level</h2>
+<h2>Conception haut niveau</h2>
+<p>Assemblage de modules (couches) différentiables:</p>
 <ul>
+<li><a href="https://www.cntk.ai/pythondocs/layerref.html#dense">Dense</a></li>
 <li><a href="https://www.cntk.ai/pythondocs/layerref.html#convolution">Convolution</a></li>
 <li><a href="https://www.cntk.ai/pythondocs/layerref.html#maxpooling-averagepooling">Pooling</a></li>
-<li><a href="https://www.cntk.ai/pythondocs/layerref.html#dense">Dense</a></li>
 <li><a href="https://www.cntk.ai/pythondocs/layerref.html#dropout">DropOut</a></li>
 </ul>
+<p>Déscente de gradient pour ajuster les paramètres de tous les modules
+à la fois</p>
 </section>
 
 <section>
 <h2>A chaque problème son modèle</h2>
 <p>
 <ul>
-<li>Presque la même topologie</li>
-<li>Mêmes algorithmes</li>
-<li>Images différentes</li>
+<li>Réutilisation des mêmes modules de base</li>
+<li>Topologies souvent similaires</li>
+<li>Mêmes algorithmes d'optimisation</li>
+<li>Différents datasets</li>
 </ul>
 </p>
 <img src="_images/problems.png" />
@@ -163,14 +167,28 @@ Side Outputs
 </section>
 
 <section>
-<h2>Utiliser les observations passées</h2>
-<p>
+<h2>Modéliser des données séquentielles</h2>
 <ul>
+<li>Transcrire la parole en texte écrit</li>
+<li>Traduire d'une langue à l'autre</li>
 <li><a href="https://en.wikipedia.org/wiki/Recurrent_neural_network">RNN</a>, 
        <a href="http://colah.github.io/posts/2015-08-Understanding-LSTMs/">LSTM</a></li>
 </ul>
 </p>
 <img src="_images/lstm.png" width="600" />
+</section>
+
+<section>
+
+<img src="_images/google-translate.png" width="800" />
+
+
+<p>
+  Google's Neural Machine Translation System: Bridging the Gap between
+  Human and Machine Translation
+
+  <a href="https://arxiv.org/abs/1609.08144">arXiv: 1609.08144</a>
+</p>
 </section>
 
 <section>
