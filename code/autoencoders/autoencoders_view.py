@@ -13,12 +13,12 @@ from PIL import Image
 from autoencoders_train_pink import PinkActivation
 
 
-def save_as_png(output_path, i, *arrays):
+def save_as_png(output_path, i, suffix, *arrays):
     file_names = []
     for sub, val_array in enumerate(arrays):
         if len(val_array.shape) != 3:
             raise ValueError("Shape dimension should be 3 not '{0}'".format(val_array.shape))
-        img_file_name = os.path.join(output_path, "img_{0}_l{1}.png".format(i, sub))
+        img_file_name = os.path.join(output_path, "img_{0}_l{1}_{2}.png".format(i, sub, suffix))
         file_names.append((img_file_name, sub))
         try:
             os.remove(img_file_name)
@@ -44,11 +44,10 @@ def save_as_png(output_path, i, *arrays):
             
             maxi = [val_array[2-ic,:,:].max() for ic in  range(channels)]
             if min(maxi) < max(maxi) / 3:
-                print(maxi)
                 for ic in range(channels):
                     rgbArray[:,:, ic] = val_array[2-ic,:,:] * 255.0 / maxi[ic]
                 img = Image.fromarray(rgbArray)
-                img_file_name = os.path.join(output_path, "img_{0}_l{1}_eq.png".format(i, sub))            
+                img_file_name = os.path.join(output_path, "img_{0}_l{1}_eq_{2}.png".format(i, sub, suffix))            
                 img.save(img_file_name)
                 file_names.append((img_file_name, "{0}r".format(sub)))
             
@@ -63,7 +62,7 @@ def generate_visualization(map_file, model_file, output_path,
     model_file_name = model_file
     encoder_output_file_name = "encoder_output_PY.txt"
     decoder_output_file_name = "decoder_output_PY.txt"
-    enc_node_name = "ae_node"
+    enc_node_name = "ae_node1"
     input_node_name = "input_node"
     output_node_name = "output_node"
     
@@ -108,7 +107,7 @@ def generate_visualization(map_file, model_file, output_path,
         out_values = decoder_output[0]
 
         # write results as text and png
-        files = save_as_png(output_path, i, in_values, enc_values, out_values)
+        files = save_as_png(output_path, i, suffix, in_values, enc_values, out_values)
         orig = df.loc[i, "image"]
         orig = os.path.relpath(orig, os.path.abspath(os.path.dirname(__file__)))
         print(orig)
@@ -133,11 +132,13 @@ if __name__=='__main__':
     with open("report.html", "w") as f:
         f.write("<html><body>\n")
         for suffix in suffixes:
-            if "pink" in suffix:
-                continue
             print("------------", suffix)
-            model_file = os.path.join("models", suffix, "ae_99.model")
-            width, height = [int(_) for _ in suffix.split("_")[1].split("x")]    
-            generate_visualization(map_file, model_file, output_path, channels, width, height, 
-                                             suffix, skip=220, save=f)
+            model_file = os.path.join("models", suffix, "ae_799.model")
+            width, height = [int(_) for _ in suffix.split("_")[1].split("x")]  
+            try:
+                generate_visualization(map_file, model_file, output_path, channels, width, height, 
+                                                suffix, skip=220, save=f)
+            except Exception:
+                print("skip", suffix)
+                continue
         f.write("</body></html>\n")

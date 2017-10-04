@@ -41,42 +41,38 @@ def create_model(num_channels, image_width, image_height, layer, rconv, rpool, p
     
     # Define the auto encoder model
     if layer == 2:
-        conv1   = C.layers.Convolution2D  (conv_size, num_filters=cMap, pad=pad, activation=C.ops.relu)(scaled_input)
-        pool1   = C.layers.MaxPooling   (pool_size, pool_size, name="ae_node")(conv1)
+        conv1   = C.layers.Convolution2D(conv_size, num_filters=cMap, pad=pad, activation=C.ops.relu)(scaled_input)
         if pink:
-            lay = user_function(PinkActivation(pool1, img_name, beta))
+            pool1   = C.layers.MaxPooling(pool_size, pool_size, name="ae_node0")(conv1)
+            lay = user_function(PinkActivation(pool1, img_name, beta, name="ae_node"))
         else:
+            pool1   = C.layers.MaxPooling(pool_size, pool_size, name="ae_node")(conv1)
             lay = pool1
-        unpool1 = C.layers.MaxUnpooling (pool_size, pool_size)(lay, conv1)
+        unpool1 = C.layers.MaxUnpooling(pool_size, pool_size, name="ae_node1")(lay, conv1)
         deconv1       = C.layers.ConvolutionTranspose2D(conv_size, num_filters=num_channels, pad=pad, bias=False, 
                                         init=C.glorot_uniform(0.001), name="output_node_int")(unpool1)
         z = C.layers.ConvolutionTranspose2D(conv_size, num_filters=num_channels, pad=pad, bias=False, 
                                         init=C.glorot_uniform(0.001), name="output_node")(deconv1)
     elif layer == 0.5:
-        conv1   = C.layers.Convolution2D (conv_size, num_filters=num_channels, pad=pad, 
-                                                                        activation=C.ops.relu, name="ae_node")(scaled_input)
         if pink:
-            lay = user_function(PinkActivation(conv1, img_name, beta))
+            conv1   = C.layers.Convolution2D (conv_size, num_filters=num_channels, pad=pad, 
+                                                                            activation=C.ops.relu, name="ae_node0")(scaled_input)
+            lay = user_function(PinkActivation(conv1, img_name, beta, name="ae_node"))
         else:
+            conv1   = C.layers.Convolution2D (conv_size, num_filters=num_channels, pad=pad, 
+                                                                            activation=C.ops.relu, name="ae_node")(scaled_input)
             lay = conv1
         z = C.layers.ConvolutionTranspose2D(conv_size, num_filters=num_channels, pad=pad, bias=False, 
                                         init=C.glorot_uniform(0.001), name="output_node")(lay)        
-    elif layer == 0.25:
-        conv1   = C.layers.Convolution2D (conv_size, num_filters=num_channels, pad=pad, 
-                                                                        activation=C.ops.relu, name="ae_node")(scaled_input)
-        if pink:
-            lay = user_function(PinkActivation(conv1, img_name, beta))
-        else:
-            lay = conv1
-        z       = lay
     elif layer == 1:
         conv1   = C.layers.Convolution2D  (conv_size, num_filters=cMap, pad=pad, activation=C.ops.relu)(scaled_input)
-        pool1   = C.layers.MaxPooling   (pool_size, pool_size, name="ae_node")(conv1)
         if pink:
-            lay = user_function(PinkActivation(pool1, img_name, beta))
+            pool1   = C.layers.MaxPooling   (pool_size, pool_size,name="a2_node0")(conv1)
+            lay = user_function(PinkActivation(pool1, img_name, beta, name="ae_node"))
         else:
+            pool1   = C.layers.MaxPooling   (pool_size, pool_size, name="ae_node")(conv1)
             lay = pool1
-        unpool1 = C.layers.MaxUnpooling (pool_size, pool_size)(lay, conv1)
+        unpool1 = C.layers.MaxUnpooling (pool_size, pool_size, name="ae_node1")(lay, conv1)
         z       = C.layers.ConvolutionTranspose2D(conv_size, num_filters=num_channels, pad=pad, bias=False, 
                                         init=C.glorot_uniform(0.001), name="output_node")(unpool1)        
     elif layer == "1d":
@@ -191,10 +187,11 @@ if __name__=='__main__':
                     # (0.5, 64, 64, 3), 
                     # (0.5, 64, 64, 5), 
                     # (0.5, 192, 192, 5), 
-                    (0.5, 200, 140, 3), 
+                    #(0.5, 200, 140, 3), 
                     #(0.5, 192, 192, 3), 
                     #(1, 100, 70, 5), 
                     #(1, 100, 70, 3), 
+                    (0.5, 200, 140, 3), 
                     (1, 200, 140, 3), 
                     #(1, 64, 64, 3), 
                     #(1, 200, 160, 5), 
@@ -202,13 +199,13 @@ if __name__=='__main__':
                     #(1, 192, 192, 5), 
                     #(1, 192, 192, 3), 
                     #(2, 100, 80, 5), 
-                    (2, 200, 140, 3), 
+                    #(2, 200, 140, 3), 
                     #(0.25, 64, 64, 5), 
                     ]:
-        for pink in [False, True]:
+        for pink in [True, False]:
             if pink:
-                betas = [0.0001, 0.00001, 0.000001]
-                lrs = [ ('adam', 0.0001), ('sgd', 0.00001)]
+                betas = [0.01] #, 0.0001]
+                lrs = [ ('adam', 0.0001), ('sgd', 0.000001)]
             else:
                 betas = [0.00001]
                 lrs = [('adam', 0.0001), ('sgd', 0.00001)]
@@ -224,4 +221,4 @@ if __name__=='__main__':
                     print(folder)
                     print("------------------------------------------")
                     train_model(folder, inout, model, losses, channels, width, height,
-                                      suffix=suffix, max_epochs=600, lr=lr, deflearner=defle)
+                                      suffix=suffix, max_epochs=800, lr=lr, deflearner=defle)
