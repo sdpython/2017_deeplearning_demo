@@ -70,7 +70,6 @@
 <li>Couche de convolution</li>
 <li>Beaucoup de coefficients, seulement quelques uns de libres</li>
 <li>Une couche fait peu de choses, beaucoup de couches font...</li>
-<li>Peuvent être apprises séparément</li>
 </ul>
 <img src="_images/mnist.png" />
 </section>
@@ -106,8 +105,8 @@
 <ul>
 <li><a href="http://www.image-net.org/">ImageNet</a></li>
 <li><a href="https://en.wikipedia.org/wiki/AlexNet">AlexNet</a>, 
-       <a href="https://en.wikipedia.org/wiki/ResNet">ResNet</a>, 
-       <a href="http://www.robots.ox.ac.uk/~vgg/research/very_deep/">VGG</a></li>
+    <a href="http://www.robots.ox.ac.uk/~vgg/research/very_deep/">VGG</a>,
+    <a href="https://en.wikipedia.org/wiki/ResNet">ResNet</a></li>
 </ul>
 <img src="_images/alexnet.png" />
 </section>
@@ -129,11 +128,11 @@
 </section>
 
 <section>
-<img src="_images/new-style-cv-1.png" />
-</section>
-
-<section>
 <h2>Classification d'images après 2012</h2>
+</section>
+  
+<section>
+<img src="_images/new-style-cv-1.png" />
 </section>
 
 <section>
@@ -146,6 +145,15 @@
 
 <section>
 <img src="_images/new-style-cv-4.png" />
+</section>
+
+<section>
+<h2>Pourquoi 2012 ?</h2>
+<ul>
+<li>Beaucoup d'images avec des labels</li>
+<li>Puissance de calcul vectoriel (GPU)</li>
+<li>Implémentations Open Source</li>
+</ul>
 </section>
 
 <section>
@@ -167,6 +175,9 @@
 <img src="_images/alexnet_break.png" />
 </section>
 
+<section>
+<h2>Demo Jupyter / Keras / Azure / GPU</h2>
+</section>
 
 <section>
 <h2>Une fonction d'erreur adéquate</h2>
@@ -197,19 +208,6 @@ Side Outputs</a>
 </ul>
 </p>
 <img src="_images/artme.png" />
-</section>
-
-
-<section>
-<h2>Traduire ce qu'on attend en gradient</h2>
-<p>
-<ul>
-<li>Forcer l'interprétation</li>
-<li><a href="https://blog.paperspace.com/adversarial-autoencoders-with-pytorch/">Adversarial Autoencoders</a></li>
-</ul>
-</p>
-<img src="_images/aae_001.png" width="600"
-     style="border: none; box-shadow: none;" />
 </section>
 
 <section>
@@ -289,8 +287,62 @@ Side Outputs</a>
   <li>Gestion manuelle</li>
   <li>1 VM par utilisateur</li>
   <li>Ne pas oublier de l'éteindre ou sinon: $$$</li>
+  <li>Solution 0 : Arrêt automatique de la VM (timeout)</li>
   <li>Solution 1 : JupyterHub + kubernetes avec autoscaling</li>
   <li>Solution 2 : <a href="https://batchaitraining.azure.com/">Azure Batch AI</a></li>
+</ul>
+</section>
+
+<section>
+<h2>Framework for Deep Learning</h2>
+Connaître le code pour être performant.
+<table>
+<tr><td><a href="https://github.com/Microsoft/CNTK">CTNK</a></td><td>Microsoft</td></tr>
+<tr><td><a href="https://www.tensorflow.org/tutorials/">TensorFlow</a></td><td>Google</td></tr>
+<tr><td><a href="http://pytorch.org/">torch / PyTorch</a></td><td>Facebook</td></tr>
+<tr><td><a href="https://caffe2.ai/">Caffe2</a></td><td>Facebook</td></tr>
+<tr><td><a href="https://mxnet.incubator.apache.org/">MXNet</a></td><td>Apache + Amazon</td></tr>
+<tr><td><a href="https://github.com/PaddlePaddle/Paddle">paddlepaddle</a></td><td>Baidu</td></tr>
+<tr><td>...</td><td>...</td></tr>
+</table>
+</section>
+
+<section>
+<h2>Windows ou Linux ?</h2>
+<ul>
+<li>Toutes les librairies existent sous Linux</li>
+<li>La plupart existent sous Windows.</li>
+<li>Linux sous Windows <a href="https://msdn.microsoft.com/en-us/commandline/wsl/install_guide">Windows Subsystem for Linux</a></li>
+</ul>
+<img src="_images/wsl.png" />
+</section>
+  
+<section>
+<h2>Forces</h2>
+<table>
+<tr><td><a href="https://github.com/Microsoft/CNTK">CTNK</a></td><td>Intégration avec Azure, mise en production pour ses clients facilité</td></tr>
+<tr><td><a href="https://www.tensorflow.org/tutorials/">TensorFlow</a></td><td>Grande communauté = nombreux exemples</td></tr>
+<tr><td><a href="http://pytorch.org/">torch</a></td><td>Design, flexibilité, structure dynamique</td></tr>
+<tr><td><a href="https://github.com/PaddlePaddle/Paddle">paddlepaddle</a></td><td>Plus jeune, objectif parallélisation</td></tr>
+</table>
+</section>
+
+<section>
+<h2>Windows ou Linux ?</h2>
+<ul>
+<li>Toutes les librairies existent sous Linux</li>
+<li>La plupart existe sous Windows.</li>
+<li>Linux sous Windows <a href="https://msdn.microsoft.com/en-us/commandline/wsl/install_guide">Windows Subsystem for Linux</a></li>
+</ul>
+<img src="_images/wsl.png" />
+</section>
+
+<section>
+<h2>Deep Learning Embarqué</h2>
+<ul>
+<li><a href="https://github.com/onnx/onnx">ONNX</a> : conversion de modèle dans un langage commun (PyTorch, Caffe2, bientôt CNTK)</li>
+<li><a href="https://pypi.python.org/pypi/coremltools">coremltools</a> : modèle ML exécuté dans un téléphone (iOS)</li>
+<li><a href="https://www.tensorflow.org/mobile/">TensorFlow Mobile</a> : Android, iOS, Raspberry Pi</li>
 </ul>
 </section>
 
